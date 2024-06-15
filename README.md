@@ -1,1 +1,3 @@
 # VolunteerAssignmentManagement_Backend_RabbitMq_Golang_s3
+
+Starting Rabbit Mq server in Docker
