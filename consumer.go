@@ -8,13 +8,13 @@ import (
 
 func ConsumeMessages(ch *amqp.Channel, q amqp.Queue, consumerID int) {
 	msgs, err := ch.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
+		"hello", // queue
+		"",      // consumer
+		true,    // auto-ack
+		false,   // exclusive
+		false,   // no-local
+		false,   // no-wait
+		nil,     // args
 	)
 	FailOnError(err, "Failed to register a consumer")
 
