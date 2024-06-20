@@ -12,16 +12,17 @@ func main() {
 	defer ch.Close()
 
 	// Publish a message
+
 	for i := 0; i < 10; i++ {
 		publishMessage(ch, q, "Hello World!")
 
 	}
-	/*
-		numConsumers := 10
-		for i := 1; i <= numConsumers; i++ {
-			go ConsumeMessages(ch, q, i)
-		}
-	*/
+
+	numConsumers := 2
+	for i := 1; i <= numConsumers; i++ {
+		go ConsumeMessages(ch, q, i)
+	}
+
 	// Periodically check the status of the queue
 	go func() {
 		for {
