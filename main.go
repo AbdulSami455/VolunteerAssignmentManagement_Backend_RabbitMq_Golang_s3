@@ -31,6 +31,7 @@ func main() {
 		}
 	}()
 
+	// Printing a message to the console and waiting for a signal to exit
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	select {}
 
