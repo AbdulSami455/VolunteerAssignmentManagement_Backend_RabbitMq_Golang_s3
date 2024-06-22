@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 )
@@ -14,20 +15,16 @@ func main() {
 	// Publish a message
 
 	for i := 0; i < 10; i++ {
-		publishMessage(ch, q, "Hello World!")
-
+		go publishMessage(ch, q, fmt.Sprintf("Hello World %d", i))
 	}
 
-	numConsumers := 2
-	for i := 1; i <= numConsumers; i++ {
-		go ConsumeMessages(ch, q, i)
-	}
+	go ConsumeMessages(ch, q, 1)
 
 	// Periodically check the status of the queue
 	go func() {
 		for {
 			CheckQueueStatus(ch, q.Name)
-			time.Sleep(10 * time.Second) // Check every 2 seconds
+			time.Sleep(10 * time.Second)
 		}
 	}()
 
