@@ -31,23 +31,3 @@ func ConnectRabbitMQ() (*amqp.Connection, *amqp.Channel, amqp.Queue) {
 
 	return conn, ch, q
 }
-
-func publishMessage(ch *amqp.Channel, q amqp.Queue, message string) {
-	err := ch.Publish(
-		"",      // exchange
-		"hello", // routing key
-		false,   // mandatory
-		false,   // immediate
-		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(message),
-		})
-	FailOnError(err, "Failed to publish a message")
-}
-
-func CheckQueueStatus(ch *amqp.Channel, queueName string) {
-	q, err := ch.QueueInspect(queueName)
-	FailOnError(err, "Failed to inspect queue")
-
-	log.Printf("Queue %s has %d messages and %d consumers", q.Name, q.Messages, q.Consumers)
-}
