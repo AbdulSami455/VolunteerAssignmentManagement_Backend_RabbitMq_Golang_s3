@@ -61,7 +61,7 @@ func main() {
 
 		go ConsumeMessages(ch, q, 1)
 
-		// Periodically check the status of the queue
+		// Periodically check the status of the queue and function
 		go func() {
 			for {
 				CheckQueueStatus(ch, q.Name)
@@ -69,7 +69,7 @@ func main() {
 			}
 		}()
 
-		// Printing a message to the console and waiting for a signal to exit
+		// Printing a message to the console and waiting for a signal to exit ...
 		log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 		select {}
 	*/
