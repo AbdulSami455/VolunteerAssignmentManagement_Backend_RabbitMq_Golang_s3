@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -10,20 +11,85 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
 }
 
-func reader(conn *websocket.Conn) {
+var managers = make(map[*websocket.Conn]bool)
+var clients = make(map[*websocket.Conn]bool)
+var broadcast = make(chan Message)
+var mu sync.Mutex
+
+type Message struct {
+	MessageType int    `json:"messageType"`
+	Body        string `json:"body"`
+}
+
+func handleManagerConnections(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer ws.Close()
+
+	mu.Lock()
+	managers[ws] = true
+	mu.Unlock()
+
 	for {
-		messageType, p, err := conn.ReadMessage()
+		var msg Message
+		err := ws.ReadJSON(&msg)
 		if err != nil {
 			fmt.Println(err)
-			return
+			mu.Lock()
+			delete(managers, ws)
+			mu.Unlock()
+			break
 		}
-		fmt.Println(string(p))
-		if err := conn.WriteMessage(messageType, p); err != nil {
+		broadcast <- msg
+	}
+}
+
+func handleClientConnections(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer ws.Close()
+
+	mu.Lock()
+	clients[ws] = true
+	mu.Unlock()
+
+	for {
+		var msg Message
+		err := ws.ReadJSON(&msg)
+		if err != nil {
 			fmt.Println(err)
-			return
+			mu.Lock()
+			delete(clients, ws)
+			mu.Unlock()
+			break
 		}
+	}
+}
+
+func handleMessages() {
+	for {
+		msg := <-broadcast
+		mu.Lock()
+		for client := range clients {
+			err := client.WriteJSON(msg)
+			if err != nil {
+				fmt.Println(err)
+				client.Close()
+				delete(clients, client)
+			}
+		}
+		mu.Unlock()
 	}
 }
 
@@ -31,51 +97,18 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Homepage")
 }
 
-func wsEndpoint(w http.ResponseWriter, r *http.Request) {
-	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println(err)
-	}
-	reader(ws)
-}
-
 func setuproutes() {
-
 	http.HandleFunc("/", homepage)
-	http.HandleFunc("/ws", wsEndpoint)
-
+	http.HandleFunc("/manager", handleManagerConnections)
+	http.HandleFunc("/client", handleClientConnections)
 }
+
 func main() {
-
-	/*
-		conn, ch, q := ConnectRabbitMQ()
-		defer conn.Close()
-		defer ch.Close()
-
-		// Publish a message
-
-		for i := 0; i < 10; i++ {
-			go publishMessage(ch, q, fmt.Sprintf("Hello World %d", i))
-		}
-
-		go ConsumeMessages(ch, q, 1)
-
-		// Periodically check the status of the queue and function
-		go func() {
-			for {
-				CheckQueueStatus(ch, q.Name)
-				time.Sleep(10 * time.Second)
-			}
-		}()
-
-		// Printing a message to the console and waiting for a signal to exit ...
-		log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-		select {}
-	*/
-
 	fmt.Println("Go Websockets")
 	setuproutes()
-	http.ListenAndServe(":8070", nil)
-
+	go handleMessages()
+	err := http.ListenAndServe(":8070", nil)
+	if err != nil {
+		fmt.Println("ListenAndServe: ", err)
+	}
 }
