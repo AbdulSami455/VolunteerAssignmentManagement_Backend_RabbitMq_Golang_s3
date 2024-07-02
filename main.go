@@ -40,6 +40,7 @@ func handleManagerConnections(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		var msg Message
+
 		err := ws.ReadJSON(&msg)
 		if err != nil {
 			fmt.Println(err)
@@ -93,12 +94,7 @@ func handleMessages() {
 	}
 }
 
-func homepage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Homepage")
-}
-
 func setuproutes() {
-	http.HandleFunc("/", homepage)
 	http.HandleFunc("/manager", handleManagerConnections)
 	http.HandleFunc("/client", handleClientConnections)
 }
