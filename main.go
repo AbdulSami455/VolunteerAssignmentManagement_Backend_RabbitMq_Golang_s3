@@ -31,7 +31,7 @@ type Message struct {
 
 var ch *amqp.Channel
 
-func handleClientConnections(w http.ResponseWriter, r *http.Request) {
+func handlevolunteerConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -143,7 +143,7 @@ func handleManagerConnections(w http.ResponseWriter, r *http.Request) {
 
 func setuproutes() {
 	http.HandleFunc("/manager", handleManagerConnections)
-	http.HandleFunc("/client", handleClientConnections)
+	http.HandleFunc("/volunteer", handlevolunteerConnections)
 }
 
 func main() {
