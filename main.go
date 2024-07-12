@@ -113,6 +113,7 @@ func handleMessages() {
 }
 
 func handleManagerConnections(w http.ResponseWriter, r *http.Request) {
+
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -154,9 +155,14 @@ func handleManagerConnections(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func loginasManager(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf("Login as Manager")
+}
+
 func setuproutes() {
 	http.HandleFunc("/manager", handleManagerConnections)
 	http.HandleFunc("/volunteer", handlevolunteerConnections)
+	http.HandleFunc("/login", loginasManager)
 }
 
 func main() {
@@ -176,9 +182,11 @@ func main() {
 	defer ch.Close()
 
 	setuproutes()
+
 	go handleMessages()
 	err = http.ListenAndServe(":8070", nil)
 	if err != nil {
 		fmt.Println("ListenAndServe: ", err)
 	}
+
 }
