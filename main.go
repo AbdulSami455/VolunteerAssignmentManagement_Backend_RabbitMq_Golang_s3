@@ -156,7 +156,7 @@ func handleManagerConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginasManager(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf("Login as Manager")
+	fmt.Fprintf(w, "Login as Manager")
 }
 
 func setuproutes() {
