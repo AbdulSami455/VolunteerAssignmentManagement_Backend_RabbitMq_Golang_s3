@@ -159,10 +159,15 @@ func loginasManager(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Login as Manager")
 }
 
+func loginasvolunteer(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Login as Volunteer")
+}
+
 func setuproutes() {
 	http.HandleFunc("/manager", handleManagerConnections)
 	http.HandleFunc("/volunteer", handlevolunteerConnections)
-	http.HandleFunc("/login", loginasManager)
+	http.HandleFunc("/loginasmanager", loginasManager)
+	http.HandleFunc("/loginasvolunteer", loginasvolunteer)
 }
 
 func main() {
