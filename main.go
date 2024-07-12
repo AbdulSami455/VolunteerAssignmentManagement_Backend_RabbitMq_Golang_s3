@@ -191,6 +191,7 @@ func main() {
 	defer ch.Close()
 
 	setuproutes()
+	cluster_connection()
 
 	go handleMessages()
 	err = http.ListenAndServe(":8070", nil)
@@ -199,5 +200,4 @@ func main() {
 		fmt.Println("ListenAndServe: ", err)
 	}
 
-	cluster_connection()
 }

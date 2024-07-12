@@ -8,24 +8,25 @@ import (
 )
 
 func cluster_connection() {
+	// Connect to Cassandra cluster running on localhost
 	cluster := gocql.NewCluster("localhost")
-	cluster.Keyspace = "system_schema" // Use system_schema keyspace to query system tables
+	cluster.Keyspace = "managers_keyspace" // Specify the keyspace to use
 	cluster.Consistency = gocql.Quorum
 
-	// Create a new session
+	// Create session for executing queries
 	session, err := cluster.CreateSession()
 	if err != nil {
 		log.Fatal("Error creating session: ", err)
 	}
 	defer session.Close()
 
-	// Query to fetch all tables in the keyspace
-	query := "SELECT table_name FROM tables WHERE keyspace_name = 'your_keyspace_name'"
+	// Query to fetch tables in the specified keyspace
+	query := "SELECT table_name FROM system_schema.tables WHERE keyspace_name = 'managers_keyspace'"
 
 	iter := session.Query(query).Iter()
 	var tableName string
 
-	fmt.Println("Tables in your_keyspace_name:")
+	fmt.Println("Tables in managers_keyspace:")
 	for iter.Scan(&tableName) {
 		fmt.Println(tableName)
 	}
