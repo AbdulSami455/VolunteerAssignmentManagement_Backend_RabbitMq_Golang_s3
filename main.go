@@ -175,23 +175,29 @@ func main() {
 	fmt.Println("Go Websockets")
 
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
 	}
+
 	defer conn.Close()
 
 	ch, err = conn.Channel()
+
 	if err != nil {
 		log.Fatalf("Failed to open a channel: %v", err)
 	}
+
 	defer ch.Close()
 
 	setuproutes()
 
 	go handleMessages()
 	err = http.ListenAndServe(":8070", nil)
+
 	if err != nil {
 		fmt.Println("ListenAndServe: ", err)
 	}
 
+	cluster_connection()
 }

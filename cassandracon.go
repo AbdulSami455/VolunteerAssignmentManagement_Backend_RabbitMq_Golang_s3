@@ -1,6 +1,5 @@
 package main
 
-/*
 import (
 	"fmt"
 	"log"
@@ -8,25 +7,29 @@ import (
 	"github.com/gocql/gocql"
 )
 
-func main() {
-	 Create a new cluster configuration
+func cluster_connection() {
 	cluster := gocql.NewCluster("localhost")
-	cluster.Keyspace = "system"
+	cluster.Keyspace = "system_schema" // Use system_schema keyspace to query system tables
 	cluster.Consistency = gocql.Quorum
 
-	 Create a new session
+	// Create a new session
 	session, err := cluster.CreateSession()
 	if err != nil {
 		log.Fatal("Error creating session: ", err)
 	}
 	defer session.Close()
 
-	Execute a simple query
-	var clusterName string
-	if err := session.Query("SELECT cluster_name FROM local").Scan(&clusterName); err != nil {
-		log.Fatal("Error executing query: ", err)
-	}
+	// Query to fetch all tables in the keyspace
+	query := "SELECT table_name FROM tables WHERE keyspace_name = 'your_keyspace_name'"
 
-	fmt.Printf("Cluster Name: %s\n", clusterName)
+	iter := session.Query(query).Iter()
+	var tableName string
+
+	fmt.Println("Tables in your_keyspace_name:")
+	for iter.Scan(&tableName) {
+		fmt.Println(tableName)
+	}
+	if err := iter.Close(); err != nil {
+		log.Fatal("Error fetching tables: ", err)
+	}
 }
-*/
