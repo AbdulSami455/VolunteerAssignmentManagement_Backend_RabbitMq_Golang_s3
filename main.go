@@ -1,6 +1,5 @@
 package main
 
-/*
 import (
 	"fmt"
 	"log"
@@ -25,6 +24,9 @@ var clients = make(map[*websocket.Conn]bool)
 // var broadcast = make(chan Message)
 var mu sync.Mutex
 
+var managerCount int
+var volunteerCount int
+
 type Message struct {
 	MessageType int    `json:"messageType"`
 	Body        string `json:"body"`
@@ -42,6 +44,8 @@ func handlevolunteerConnections(w http.ResponseWriter, r *http.Request) {
 
 	mu.Lock()
 	clients[ws] = true
+	volunteerCount++
+	fmt.Printf("New volunteer connection established. Total volunteer connections: %d\n", volunteerCount)
 	mu.Unlock()
 
 	for {
@@ -50,6 +54,8 @@ func handlevolunteerConnections(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println(err)
 			mu.Lock()
+			volunteerCount--
+			fmt.Printf("volunteer connection Disconnected. Total volunteer connections: %d\n", volunteerCount)
 			delete(clients, ws)
 			mu.Unlock()
 			break
@@ -97,6 +103,8 @@ func handleMessages() {
 			if err != nil {
 				fmt.Println(err)
 				client.Close()
+				volunteerCount--
+				fmt.Printf("Volunteer connection closed. Total volunteer connections: %d\n", volunteerCount)
 				delete(clients, client)
 			}
 		}
@@ -114,6 +122,8 @@ func handleManagerConnections(w http.ResponseWriter, r *http.Request) {
 
 	mu.Lock()
 	managers[ws] = true
+	managerCount++
+	fmt.Printf("New manager connection established. Total manager connections: %d\n", managerCount)
 	mu.Unlock()
 
 	for {
@@ -123,6 +133,8 @@ func handleManagerConnections(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			mu.Lock()
 			delete(managers, ws)
+			managerCount--
+			fmt.Printf("Manager connection Disconnected. Total manager connections: %d\n", managerCount)
 			mu.Unlock()
 			break
 		}
@@ -148,6 +160,7 @@ func setuproutes() {
 }
 
 func main() {
+
 	fmt.Println("Go Websockets")
 
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
@@ -169,4 +182,3 @@ func main() {
 		fmt.Println("ListenAndServe: ", err)
 	}
 }
-*/
