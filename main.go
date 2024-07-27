@@ -21,7 +21,6 @@ var upgrader = websocket.Upgrader{
 var managers = make(map[*websocket.Conn]bool)
 var clients = make(map[*websocket.Conn]bool)
 
-// var broadcast = make(chan Message)
 var mu sync.Mutex
 
 var managerCount int
@@ -55,7 +54,7 @@ func handlevolunteerConnections(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			mu.Lock()
 			volunteerCount--
-			fmt.Printf("volunteer connection Disconnected. Total volunteer connections: %d\n", volunteerCount)
+			fmt.Printf("Volunteer connection Disconnected. Total volunteer connections: %d\n", volunteerCount)
 			delete(clients, ws)
 			mu.Unlock()
 			break
@@ -64,7 +63,6 @@ func handlevolunteerConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMessages() {
-
 	if ch == nil {
 		log.Fatal("RabbitMQ channel is not initialized")
 	}
@@ -95,7 +93,6 @@ func handleMessages() {
 	}
 
 	for d := range msgs {
-
 		msg := Message{Body: string(d.Body)}
 		mu.Lock()
 		for client := range clients {
@@ -113,7 +110,6 @@ func handleMessages() {
 }
 
 func handleManagerConnections(w http.ResponseWriter, r *http.Request) {
-
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -163,41 +159,50 @@ func loginasvolunteer(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Login as Volunteer")
 }
 
+func getVolunteersCount(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	count := volunteerCount
+	mu.Unlock()
+
+	fmt.Fprintf(w, "Total Volunteers: %d", count)
+}
+
+func getManagersCount(w http.ResponseWriter, r *http.Request) {
+	mu.Lock()
+	count := managerCount
+	mu.Unlock()
+
+	fmt.Fprintf(w, "Total Managers: %d", count)
+}
+
 func setuproutes() {
 	http.HandleFunc("/manager", handleManagerConnections)
 	http.HandleFunc("/volunteer", handlevolunteerConnections)
 	http.HandleFunc("/loginasmanager", loginasManager)
 	http.HandleFunc("/loginasvolunteer", loginasvolunteer)
+	http.HandleFunc("/volunteers/count", getVolunteersCount) // New endpoint for volunteers count
+	http.HandleFunc("/managers/count", getManagersCount)     // New endpoint for managers count
 }
 
 func main() {
-
 	fmt.Println("Go Websockets")
 
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ: %v", err)
 	}
-
 	defer conn.Close()
 
 	ch, err = conn.Channel()
-
 	if err != nil {
 		log.Fatalf("Failed to open a channel: %v", err)
 	}
-
 	defer ch.Close()
 
 	setuproutes()
-	cluster_connection()
-
 	go handleMessages()
 	err = http.ListenAndServe(":8070", nil)
-
 	if err != nil {
 		fmt.Println("ListenAndServe: ", err)
 	}
-
 }
